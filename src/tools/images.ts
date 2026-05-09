@@ -69,7 +69,7 @@ export function registerImageTools(server: McpServer): void {
 
   server.tool(
     "pull_image",
-    "Pull a Docker image from a registry to the host. Use this before redeploying a stack that uses a mutable tag like ':latest' so the redeploy actually picks up the new image.",
+    "Trigger a Docker image pull from a registry to the host. Runs asynchronously — returns a jobId immediately rather than waiting for the pull to finish. Use get_job_status to poll progress, or call list_images afterwards to confirm the image landed. Pull before redeploying a stack with a mutable tag like ':latest' so the redeploy actually picks up the new image.",
     {
       image: z
         .string()
