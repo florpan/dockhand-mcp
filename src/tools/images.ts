@@ -66,4 +66,27 @@ export function registerImageTools(server: McpServer): void {
       };
     }
   );
+
+  server.tool(
+    "pull_image",
+    "Pull a Docker image from a registry to the host. Use this before redeploying a stack that uses a mutable tag like ':latest' so the redeploy actually picks up the new image.",
+    {
+      image: z
+        .string()
+        .describe("Image reference to pull, e.g. 'nginx:latest' or 'registry.example.com/team/app:1.2.3'"),
+      environmentId: environmentIdSchema,
+    },
+    async ({ image, environmentId }) => {
+      const result = await dockhandRequest<unknown>(
+        `/api/images/pull?${envQuery(environmentId)}`,
+        {
+          method: "POST",
+          body: JSON.stringify({ image }),
+        }
+      );
+      return {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+      };
+    }
+  );
 }
