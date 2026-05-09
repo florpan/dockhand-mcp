@@ -141,7 +141,9 @@ export function registerStackTools(server: McpServer): void {
         `/api/stacks?${envQuery(environmentId)}`,
         {
           method: "POST",
-          body: JSON.stringify({ name, content }),
+          // Dockhand's POST /api/stacks expects the YAML under `compose`,
+          // even though GET/PUT /api/stacks/:id/compose use `content`.
+          body: JSON.stringify({ name, compose: content }),
         }
       );
       return {

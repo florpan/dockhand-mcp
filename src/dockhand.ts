@@ -27,6 +27,12 @@ export const environmentIdSchema = z
     "Optional Dockhand environment ID to target. Use list_environments to find IDs. Defaults to DOCKHAND_ENV_ID env var (or 1)."
   );
 
+async function buildErrorMessage(response: Response): Promise<string> {
+  const body = (await response.text().catch(() => "")).trim();
+  const head = body.length > 500 ? `${body.slice(0, 500)}…` : body;
+  return `Dockhand API error: ${response.status} ${response.statusText}${head ? ` — ${head}` : ""}`;
+}
+
 let sessionCookie: string | null = null;
 
 async function login(): Promise<void> {
@@ -86,14 +92,14 @@ export async function dockhandRequest<T>(
     });
 
     if (!retry.ok) {
-      throw new Error(`Dockhand API error: ${retry.status} ${retry.statusText}`);
+      throw new Error(await buildErrorMessage(retry));
     }
 
     return retry.json() as Promise<T>;
   }
 
   if (!res.ok) {
-    throw new Error(`Dockhand API error: ${res.status} ${res.statusText}`);
+    throw new Error(await buildErrorMessage(res));
   }
 
   // Some endpoints return 204 No Content
