@@ -68,8 +68,17 @@ export async function dockhandRequest<T>(
     await login();
   }
 
+  // Dockhand's POST endpoints (deploy, start, stop, sync, prune) expect a
+  // JSON body even when there's no payload to send. Without one, the server
+  // tries to parse an empty body and returns 500 "Unexpected end of JSON
+  // input". Default to "{}" for mutating methods that didn't supply a body.
+  const method = (options.method ?? "GET").toUpperCase();
+  const expectsBody = method === "POST" || method === "PUT" || method === "PATCH";
+  const body = options.body ?? (expectsBody ? "{}" : undefined);
+
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
+    body,
     headers: {
       ...(options.headers ?? {}),
       Cookie: sessionCookie!,
@@ -84,6 +93,7 @@ export async function dockhandRequest<T>(
 
     const retry = await fetch(`${BASE_URL}${path}`, {
       ...options,
+      body,
       headers: {
         ...(options.headers ?? {}),
         Cookie: sessionCookie!,
